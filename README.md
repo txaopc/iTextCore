@@ -108,4 +108,4 @@ If this repository is helpful to you, consider supporting me with a coffee.
 
 or
 
-![image](https://github.com/user-attachments/assets/a5c4080c-1da9-44cf-8373-790a09032015)
+[<img src="https://github.com/user-attachments/assets/4f103c82-7938-4865-927f-a6deab3f29cd" height=200/>](https://github.com/user-attachments/assets/4f103c82-7938-4865-927f-a6deab3f29cd)
