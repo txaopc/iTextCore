@@ -1,53 +1,4 @@
-**[iText 7 Community for .NET][itext]** (former iTextSharp) consists of several dlls.
-
-The **iText 7 Core/Community** release contains:
-
-- ```kernel.dll```: low-level functionality
-- ```io.dll```:  low-level functionality
-- ```layout.dll```: high-level functionality
-- ```forms.dll```: AcroForms
-- ```pdfa.dll```: PDF/A-specific functionality
-- ```pdftest.dll```: test helper classes
-- ```barcode.dll```: use this if you want to create bar codes
-- ```hyph.dll```: use this if you want text to be hyphenated
-- ```font-asian.dll```: use this is you need CJK functionality (Chinese / Japanese / Korean)
-- ```sign.dll```: use this if you need support for digital signatures
-- ```styled-xml-parser.dll```: use this if you need support for SVG or html2pdf
-- ```svg.dll```: SVG support
-- ```commons.dll```: commons module
-
-The **iText 7 Community** source code is hosted on [Github][github], where you can also [download the latest releases][latest].
-
-*We strongly recommend that you use [NuGet][nuget] to add **iText 7 Community** to your project:*
-
-    Install-Package itext7
-
-You can also [build iText 7 Community from source][building].
-
-We also provide opensource add-ons and tools to complement the core functionality:
-- [pdfHTML][pdfhtml] — allows you to easily convert HTML to PDF or iText objects
-- [pdfSweep][pdfsweep] — a highly efficient PDF tool to merge, split and redact data
-- [RUPS][rups] — a Java tool that can help you debug PDFs
-
-If you have an idea on how to improve **iText 7 Community** and you want to submit code,
-please read our [Contribution Guidelines][contributing].
-
-**iText 7** is dual licensed as [AGPL][agpl]/[Commercial software][sales].
-
-AGPL is a free / open source software license.
-
-This doesn't mean the software is [gratis][gratis]!
-
-Buying a license is mandatory as soon as you develop commercial activities
-distributing the iText software inside your product or deploying it on a network
-without disclosing the source code of your own applications under the AGPL license.
-These activities include:
-
-- offering paid services to customers as an ASP
-- serving PDFs on the fly in the cloud or in a web application
-- shipping iText with a closed source product
-
-Contact [sales] for more info.
+This is a repo forked from the iText Core community.
 
 [agpl]: LICENSE.md
 [building]: BUILDING.md
@@ -61,3 +12,96 @@ Contact [sales] for more info.
 [rups]: https://github.com/itext/i7j-rups
 [pdfhtml]: https://github.com/itext/i7n-pdfhtml
 [pdfsweep]: https://github.com/itext/i7n-pdfsweep
+
+In Vietnam's government PDF e-documents, digital signatures include embedded PNG signature images. This is why I'm customizing iText 7.2.3 to handle this implementation (Newer versions (of iText) appear to disallow PNG usage, likely due to PDF/A format compliance requirements.)
+
+And, I have modified the library to support digital signing and signature verification using the RSASSA-PSS algorithm scheme.
+
+The workflow is implemented through these stages:
+
+Step 1: Add RSASSA-PSS scheme OID to the itext.sign module in SecureIDs.cs
+
+```C#
+public class SecurityIDs {
+    ...
+    //Add OID for RSASSA-PSS schema
+    public const String ID_RSASSA_PSS = "1.2.840.113549.1.1.10";
+}
+```
+
+Step 2: Add RSASSA-PSS algorithm name to the algorithmNames dictionary in the EncryptionAlgorithms class:
+
+```C#
+static EncryptionAlgorithms() {
+    ...
+    // Add RSA Signature Scheme with Appendix - Probabilistic Signature (RSASSA-PSS) name
+    algorithmNames.Put("1.2.840.113549.1.1.10", "RSAandMGF1");
+}
+```
+
+Step 3: PdfPKCS7 Class Updates:
+
+- Enhance SetExternalDigest to handle RSASSA-PSS:
+
+```C#
+public virtual void SetExternalDigest(byte[] digest, byte[] rsaData, String digestEncryptionAlgorithm) {
+    externalDigest = digest;
+    externalRsaData = rsaData;
+    if (digestEncryptionAlgorithm != null) {
+        if (digestEncryptionAlgorithm.Equals("RSA")) {
+            this.digestEncryptionAlgorithmOid = SecurityIDs.ID_RSA;
+        }
+        else {
+            if (digestEncryptionAlgorithm.Equals("DSA")) {
+                this.digestEncryptionAlgorithmOid = SecurityIDs.ID_DSA;
+            }
+            else {
+                if (digestEncryptionAlgorithm.Equals("ECDSA")) {
+                    this.digestEncryptionAlgorithmOid = SecurityIDs.ID_ECDSA;
+                }
+                else {
+                    if (digestEncryptionAlgorithm.ToUpper().EndsWith("RSAANDMGF1"))
+                    {
+                        this.digestEncryptionAlgorithmOid = SecurityIDs.ID_RSASSA_PSS;
+                    }
+                    else
+                    {
+                        throw new PdfException(SignExceptionMessageConstant.UNKNOWN_KEY_ALGORITHM).SetMessageParams(digestEncryptionAlgorithm
+                            );
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+- Modify GetEncodedPKCS7 to accept PSS parameters:
+
+```C#
+ public virtual byte[] GetEncodedPKCS7(byte[] secondDigest, PdfSigner.CryptoStandard sigtype, ITSAClient tsaClient
+     , ICollection<byte[]> ocsp, ICollection<byte[]> crlBytes) {
+    ...
+    // Add the digestEncryptionAlgorithm
+    v = new Asn1EncodableVector();
+    v.Add(new DerObjectIdentifier(digestEncryptionAlgorithmOid));
+    //Add parameters for RSASSA-PSS schema
+    if(digestEncryptionAlgorithmOid == SecurityIDs.ID_RSASSA_PSS)
+    {
+        Asn1Encodable rsaPssParameters = Org.BouncyCastle.Security.SignerUtilities.GetDefaultX509Parameters(GetDigestAlgorithm());
+        v.Add(rsaPssParameters);
+    }
+    else 
+    { 
+        v.Add(Org.BouncyCastle.Asn1.DerNull.Instance); 
+    }
+    signerinfo.Add(new DerSequence(v));
+    ...
+}
+
+
+```
+
+If this repository is helpful to you, consider supporting me with a coffee.
+
+<a href="https://buymeacoffee.com/txaopc" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="170px"></a>
