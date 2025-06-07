@@ -105,3 +105,7 @@ public virtual void SetExternalDigest(byte[] digest, byte[] rsaData, String dige
 If this repository is helpful to you, consider supporting me with a coffee.
 
 <a href="https://buymeacoffee.com/txaopc" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="170px"></a>
+
+or
+
+![image](https://github.com/user-attachments/assets/a5c4080c-1da9-44cf-8373-790a09032015)
