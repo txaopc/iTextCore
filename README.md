@@ -107,5 +107,4 @@ If this repository is helpful to you, consider supporting me with a coffee.
 <a href="https://buymeacoffee.com/txaopc" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="170px"></a>
 
 or
-
-[<img src="https://github.com/user-attachments/assets/4f103c82-7938-4865-927f-a6deab3f29cd" height=200/>](https://github.com/user-attachments/assets/4f103c82-7938-4865-927f-a6deab3f29cd)
+<a href="https://github.com/user-attachments/assets/4f103c82-7938-4865-927f-a6deab3f29cd" target="_blank">QR Code</a>
