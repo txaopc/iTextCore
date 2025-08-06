@@ -27,7 +27,7 @@
     <ProjectReference Include="..\itext.pdfa\itext.pdfa.netstandard.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.9" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.Security.Cryptography.Csp" Version="4.3.0" />
